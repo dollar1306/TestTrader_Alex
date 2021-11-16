@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using excel = Microsoft.Office.Interop.Excel;
+
 
 /*
 Maybe the code is not 100% clean and according to what you wanted, I agree.
@@ -25,7 +27,8 @@ namespace TestTrader_Alex
                     Url = GetData(1)
                 };
                 driver.Manage().Window.Maximize();
-                LogIn();
+                WaitForLoad();//call function to wait 10 seconds
+                LogIn();//call function to login
             }
             catch (Exception ex)
             {
@@ -87,8 +90,8 @@ namespace TestTrader_Alex
                 password.SendKeys(pass);
                 IWebElement pushBtn = driver.FindElement(By.Id("btnOkLogin"));
                 pushBtn.Click();
-                driver.Navigate().Back();
-                LogOut();
+                WaitForLoad(); // call function to wait 10 seconds
+                LogOut();// call function to logout
 
             }
             catch (NoSuchElementException ex)
@@ -97,50 +100,28 @@ namespace TestTrader_Alex
             }
         }
 
-        //function to find and catch text
+        //function to logout and find and catch text
         public static void LogOut()
         {
             try
             {
-                driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(30);
+                driver.Navigate().Back();
+                IWebElement outBtn = driver.FindElement(By.CssSelector("#ExitAlertbutton0"));
+                outBtn.Click();
+                
                 //Search for a question mark selector and grab text
                 IWebElement element = driver.FindElement(By.CssSelector("i[class='ask ico-wb-help']"));
                 string text = element.GetAttribute("title");
                 Console.WriteLine("This is a Text: " + text);
-                //Function call, file write
-                WriteToTextFile(text);
-                //call function to check loaded page
+                
+                WriteToTextFile(text);                   //Function call, file write
 
-                if (WaitAndCheck())
-                {
-                    Console.WriteLine("The page loaded after 10 seconds");
-                }
-                else
-                {
-                    Console.WriteLine("Error, the page not loaded");
-                }
             }
             catch (NoSuchElementException ex)
             {
                 Console.WriteLine("Error: " + ex.Message);
             }
 
-        }
-        //function to wait and check page if loaded
-        public static bool WaitAndCheck()
-        {
-            Task.Delay(10000);
-            try
-            {
-                IWebElement check = driver.FindElement(By.CssSelector("i[class='ask ico-wb-help']"));
-                bool isDisplayed = check.Displayed;
-                return isDisplayed;
-            }
-            catch (NoSuchElementException ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-                return false;
-            }
         }
 
         //function to write cath text to file
@@ -149,7 +130,7 @@ namespace TestTrader_Alex
             try
             {
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter(@"C:\Users\USER\source\repos\AlexTest_Trader_I_Forex\TextFile1.txt");
+                StreamWriter sw = new StreamWriter(@"C:\Users\USER\source\repos\TestTrader_Alex\TextFile1.txt");
                 //Write a line of text
                 sw.WriteLine(text);
                 //Close the file
@@ -160,5 +141,33 @@ namespace TestTrader_Alex
                 Console.WriteLine("Exception: " + e.Message);
             }
         }
+
+        //function to wait 10 seconds
+        public static void WaitForLoad()
+        {
+            Stopwatch sw = new Stopwatch();//constructor stop watch
+            sw.Start();//start the stopWatch
+            for(int i=0; ; i++)
+            {
+                if(i % 20000 == 0)    
+                {
+                    sw.Stop();//stop the time measurement
+                    if(sw.ElapsedMilliseconds == 10000) // check if  Stopwatch equal 10 seconds
+                    {
+                        //if time equals 10 seconds stop
+                        Console.WriteLine("We waited 10 seconds");
+                        break;
+                    }
+                    else
+                    {
+                        //if less than 10 seconds
+                        sw.Start();
+                    }
+                }
+            }
+        }
+
+
+
     }
 }
