@@ -27,7 +27,7 @@ namespace TestTrader_Alex
                     Url = GetData(1)
                 };
                 driver.Manage().Window.Maximize();
-                WaitForLoad();//call function to wait 10 seconds
+                //WaitForLoad();//call function to wait 10 seconds
                 LogIn();//call function to login
             }
             catch (Exception ex)
@@ -82,14 +82,22 @@ namespace TestTrader_Alex
         {
             try
             {
+                IWebElement elementBtn = null;
+                IWebElement pushBtn = WaitForPageLoad(elementBtn);//to test function use "btnOkLogin1"
                 string user = GetData(2);
                 IWebElement email = driver.FindElement(By.CssSelector("input[name='UserName']"));
                 email.SendKeys(user);
                 string pass = GetData(3);
                 IWebElement password = driver.FindElement(By.CssSelector("input[name='Password']"));
                 password.SendKeys(pass);
-                IWebElement pushBtn = driver.FindElement(By.Id("btnOkLogin"));
-                pushBtn.Click();
+            
+                try
+                {
+                    pushBtn.Click();
+                }catch(NullReferenceException ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
                 WaitForLoad(); // call function to wait 10 seconds
                 LogOut();// call function to logout
 
@@ -114,7 +122,7 @@ namespace TestTrader_Alex
                 string text = element.GetAttribute("title");
                 Console.WriteLine("This is a Text: " + text);
                 
-                WriteToTextFile(text);                   //Function call, file write
+                WriteToTextFile(text);                   //Function call, write to file
 
             }
             catch (NoSuchElementException ex)
@@ -165,6 +173,29 @@ namespace TestTrader_Alex
                     }
                 }
             }
+        }
+
+
+        public static IWebElement WaitForPageLoad(IWebElement elementBtn)
+        {
+            int timeout = 1000;
+            var sw = new Stopwatch();
+            sw.Start();
+
+            while(sw.Elapsed < TimeSpan.FromMilliseconds(timeout))
+            {
+                try
+                {
+                    elementBtn = driver.FindElement(By.Id("btnOkLogin"));//to test function use "btnOkLogin1" 
+                    break;
+                        
+                }catch(NoSuchElementException ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+            sw.Stop();
+            return elementBtn;
         }
 
 
